@@ -22,7 +22,7 @@ hMotor1 = 5
 hMotor2 = 6
 hMotor3 = 7
 hMotor4 = 8
-pH = 34
+pH = machine.ADC(34)
 servo1 = 9
 servo2 = 10
 FOC = 11
@@ -32,22 +32,23 @@ linear = 14
 servo3 = 15 #camtilt
 
 #create PWM objects
-vMotor1_pwm = PWM(Pin(vMotor1))
-vMotor2_pwm = PWM(Pin(vMotor2))
-vMotor3_pwm = PWM(Pin(vMotor3))
-vMotor4_pwm = PWM(Pin(vMotor4))
-hMotor1_pwm = PWM(Pin(hMotor1))
-hMotor2_pwm = PWM(Pin(hMotor2))
-hMotor3_pwm = PWM(Pin(hMotor3))
-hMotor4_pwm = PWM(Pin(hMotor4))
+v1 = PWM(Pin(vMotor1))
+v2 = PWM(Pin(vMotor2))
+v3 = PWM(Pin(vMotor3))
+v4 = PWM(Pin(vMotor4))
+h1 = PWM(Pin(hMotor1))
+h2 = PWM(Pin(hMotor2))
+h3 = PWM(Pin(hMotor3))
+h4 = PWM(Pin(hMotor4))
 
-motors = [vMotor1_pwm, vMotor2_pwm, vMotor3_pwm, vMotor4_pwm, hMotor1_pwm, hMotor2_pwm, hMotor3_pwm, hMotor4_pwm]
+motors = [v1, v2, v3, v4, h1, h2, h3, h4]
 
 def initialize_motors():
     for motor in motors:
         motor.duty_ns(S)
     time.sleep(1)
 
+#basic motor functions
 def forward(motor, thrust):
     motor.duty_ns(1500 + thrust * 400)
 
@@ -57,4 +58,51 @@ def reverse(motor, thrust):
 def stop(motor):
     motor.duty_ns(1500)
 
-    
+#vectored movement functions
+def move_forward():
+    forward(h3, thrust)
+    forward(h4, thrust)
+    reverse(h1, thrust)
+    reverse(h2, thrust)
+
+def back():
+    reverse(h3, thrust)
+    reverse(h4, thrust)
+    forward(h1, thrust)
+    forward(h2, thrust)
+
+def right():
+    forward(h1, thrust)
+    forward(h3, thrust)
+    reverse(h2, thrust)
+    reverse(h4,thrust)
+
+def left():
+    forward(h2, thrust)
+    forward(h4, thrust)
+    reverse(h1, thrust)
+    reverse(h3,thrust)
+
+def forward_left():
+    forward(h4, thrust)
+    reverse(h1, thrust)
+
+def forward_right():
+    forward(h3, thrust)
+    reverse(h2, thrust)
+
+def back_left():
+    forward(h1, thrust)
+    reverse(h4, thrust)
+
+def back_right():
+    reverse(h3, thrust)
+    forward(h2, thrust)
+
+def read_ph():
+    pH_reading = pH.read_u16()
+    #include some operation to convert to reading between 0 and 14
+
+
+
+
