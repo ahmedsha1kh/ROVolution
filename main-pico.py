@@ -4,8 +4,11 @@ import time
 # Initialize I2C on GPIO pins (SDA=Pin 0, SCL=Pin 1)
 i2c = I2C(0, scl=Pin(1), sda=Pin(0), freq=400000)
 
-# Define the I2C address of the Pico
-PICO_ADDRESS = 0000  # Change this to your Pico's I2C address
+# Define the I2C address of the Pi
+buffer = bytearray(32)
+
+#variable for leak sensing
+isLeak = False
 
 #PWM microsecond values for forward, stop, reverse
 F = 1900
@@ -30,6 +33,8 @@ laser1 = 12
 laser2 = 13
 linear = 14
 servo3 = 15 #camtilt
+leak = Pin(16, Pin.IN)
+
 
 #create PWM objects
 v1 = PWM(Pin(vMotor1))
@@ -100,9 +105,32 @@ def back_right():
     forward(h2, thrust)
 
 def read_ph():
-    pH_reading = pH.read_u16()
-    #include some operation to convert to reading between 0 and 14
+    raw_pH = pH.read_u16()
+    #update later to include some operation to convert to reading between 0 and 14
+
+def leak():
+    if leak.value() == 0:
+        global isLeak = 0
+    elif leak.value() == 1:
+        isLeak = 1
+
+def read_commands():
+    i2c.readinto(data)
+    data = int.from_bytes(data)
+    signal = data[0]  # First byte is the signal
+    thrust_gain = data[1]  # Second byte is the scaled thrust gain (0-100)
+    thrust = thrust_gain / 100.0  # Convert back to 0.0-1.0 range
+
+    return (signal, thrust)
+
+def send_sensor_data():
+    data = bytearray(2)
+    data[0] = isLeak
+    data[1] = int(read_ph * 100)
+    i2c.write(data)
 
 
 
 
+
+    
